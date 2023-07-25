@@ -36,6 +36,7 @@ describe("Farming contract", function () {
     const amountOfEpochs = 3;
     const startTime = Math.floor(Date.now() / 1000); // goerli start
     // const startTime = await time.latest();
+    
     await Farming.initialize(totalAmount, percentage, epochDuration, amountOfEpochs, startTime);
     await stakingToken.approve(Farming.address, ethers.utils.parseEther("1000"));
 
