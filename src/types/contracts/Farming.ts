@@ -31,6 +31,7 @@ export interface FarmingInterface extends utils.Interface {
   functions: {
     "HUNDRED_PERCENT()": FunctionFragment;
     "amountOfEpochs()": FunctionFragment;
+    "approveRewardToken(address,uint256)": FunctionFragment;
     "claimRewards()": FunctionFragment;
     "deposit(uint256)": FunctionFragment;
     "epochDuration()": FunctionFragment;
@@ -50,6 +51,7 @@ export interface FarmingInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "HUNDRED_PERCENT"
       | "amountOfEpochs"
+      | "approveRewardToken"
       | "claimRewards"
       | "deposit"
       | "epochDuration"
@@ -72,6 +74,10 @@ export interface FarmingInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "amountOfEpochs",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approveRewardToken",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "claimRewards",
@@ -132,6 +138,10 @@ export interface FarmingInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "amountOfEpochs",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "approveRewardToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -235,6 +245,12 @@ export interface Farming extends BaseContract {
 
     amountOfEpochs(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    approveRewardToken(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     claimRewards(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -291,6 +307,12 @@ export interface Farming extends BaseContract {
 
   amountOfEpochs(overrides?: CallOverrides): Promise<BigNumber>;
 
+  approveRewardToken(
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   claimRewards(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -346,6 +368,12 @@ export interface Farming extends BaseContract {
     HUNDRED_PERCENT(overrides?: CallOverrides): Promise<BigNumber>;
 
     amountOfEpochs(overrides?: CallOverrides): Promise<BigNumber>;
+
+    approveRewardToken(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     claimRewards(overrides?: CallOverrides): Promise<void>;
 
@@ -419,6 +447,12 @@ export interface Farming extends BaseContract {
 
     amountOfEpochs(overrides?: CallOverrides): Promise<BigNumber>;
 
+    approveRewardToken(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     claimRewards(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -468,6 +502,12 @@ export interface Farming extends BaseContract {
     HUNDRED_PERCENT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     amountOfEpochs(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    approveRewardToken(
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
     claimRewards(
       overrides?: Overrides & { from?: PromiseOrValue<string> }

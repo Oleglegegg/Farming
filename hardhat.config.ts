@@ -86,7 +86,7 @@ const config: {} = {
       },
       forking: {
         url: process.env.RPC_URL,
-        blockNumber: 16708100
+        blockNumber: 9407217
       },
       chainId: chainIds.hardhat,
     },

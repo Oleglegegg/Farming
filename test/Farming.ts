@@ -28,14 +28,23 @@ describe("Farming contract", function () {
     rewardToken = await deployToken(TOKEN_B_NAME, TOKEN_B_SYMBOL);
 
     Farming = await FarmingFactory.deploy(stakingToken.address, rewardToken.address);
+
     await rewardToken.approve(Farming.address, ethers.utils.parseEther("1000"));
+
+    const depositAmount = ethers.utils.parseEther("300");
+    await stakingToken.mint(user1.address, depositAmount);
+    await stakingToken.connect(user1).approve(Farming.address, depositAmount);
+    await stakingToken.mint(user2.address, depositAmount);
+    await stakingToken.connect(user2).approve(Farming.address, depositAmount);
 
     const totalAmount = ethers.utils.parseEther("1000");
     const percentage = 1000;
     const epochDuration = 2678400;
     const amountOfEpochs = 3;
-    const startTime = Math.floor(Date.now() / 1000); // goerli start
-    // const startTime = await time.latest();
+
+    // const startTime = Math.floor(Date.now() / 1000); // goerli start
+
+    const startTime = await time.latest();
     
     // const currentBlock = await time.latestBlockNumber(); 
     // const startTime = currentBlock.add(5); 
@@ -60,15 +69,11 @@ describe("Farming contract", function () {
 
     it("should allow users to deposit", async () => {
       const depositAmount = ethers.utils.parseEther("100");
+
       await Farming.connect(user1).deposit(depositAmount);
       const user1Info = await Farming.users(user1.address);
       expect(user1Info.amount).to.be.equal(depositAmount);
       expect(user1Info.claimed).to.be.false;
-
-      await Farming.connect(user2).deposit(depositAmount);
-      const user2Info = await Farming.users(user2.address);
-      expect(user2Info.amount).to.be.equal(depositAmount);
-      expect(user2Info.claimed).to.be.false;
     });
 
     it("should emit Deposited event on deposit", async () => {
@@ -81,36 +86,7 @@ describe("Farming contract", function () {
     it("should prevent double deposit", async () => {
       const depositAmount = ethers.utils.parseEther("100");
       await Farming.connect(user1).deposit(depositAmount);
-      await expect(Farming.connect(user1).deposit(depositAmount)).to.be.revertedWith("You already have a deposit");
-    });
-
-    it("should allow users to withdraw", async () => {
-      const depositAmount = ethers.utils.parseEther("100");
-      await Farming.connect(user1).deposit(depositAmount);
-      await Farming.connect(user2).deposit(depositAmount);
-
-      await Farming.connect(user1).withdraw();
-      const user1Info = await Farming.users(user1.address);
-      expect(user1Info.amount).to.be.equal(ethers.utils.parseEther("0"));
-
-      await Farming.connect(user2).withdraw();
-      const user2Info = await Farming.users(user2.address);
-      expect(user2Info.amount).to.be.equal(ethers.utils.parseEther("0"));
-    });
-
-    it("should emit Withdraw event on withdraw", async () => {
-      const depositAmount = ethers.utils.parseEther("100");
-      await Farming.connect(user1).deposit(depositAmount);
-      await expect(Farming.connect(user1).withdraw())
-        .to.emit(Farming, "Withdraw")
-        .withArgs(user1.address);
-    });
-
-    it("should prevent double withdraw", async () => {
-      const depositAmount = ethers.utils.parseEther("100");
-      await Farming.connect(user1).deposit(depositAmount);
-      await Farming.connect(user1).withdraw();
-      await expect(Farming.connect(user1).withdraw()).to.be.revertedWith("You don't have a deposit");
+      await expect(Farming.connect(user1).deposit(depositAmount)).to.be.revertedWith("Already deposited");
     });
 
     it("should allow users to claim rewards", async () => {
@@ -129,6 +105,45 @@ describe("Farming contract", function () {
       await expect(Farming.connect(user1).claimRewards())
         .to.emit(Farming, "Claimed")
         .withArgs(user1.address, ethers.utils.parseEther("30")); 
+    });
+
+    it("should allow users to withdraw", async () => {
+      const depositAmount = ethers.utils.parseEther("100");
+      await Farming.connect(user1).deposit(depositAmount);
+      await Farming.connect(user2).deposit(depositAmount);
+
+      await time.increase(2678400 * 1); 
+      await Farming.connect(user1).claimRewards();
+
+      await time.increase(2678400 * 1); 
+      await Farming.connect(user2).claimRewards();
+
+      await Farming.connect(user1).withdraw(depositAmount);
+      const user1Info = await Farming.users(user1.address);
+      expect(user1Info.amount).to.be.equal(ethers.utils.parseEther("0"));
+
+      await Farming.connect(user2).withdraw(depositAmount);
+      const user2Info = await Farming.users(user2.address);
+      expect(user2Info.amount).to.be.equal(ethers.utils.parseEther("0"));
+    });
+
+    it("should emit Withdraw event on withdraw", async () => {
+      const depositAmount = ethers.utils.parseEther("100");
+      await Farming.connect(user1).deposit(depositAmount);
+      await time.increase(2678400 * 3); 
+      await Farming.connect(user1).claimRewards();
+      await expect(Farming.connect(user1).withdraw(depositAmount))
+        .to.emit(Farming, "Withdrawn")
+        .withArgs(user1.address, depositAmount);
+    });
+
+    it("should prevent double withdraw", async () => {
+      const depositAmount = ethers.utils.parseEther("100");
+      await Farming.connect(user1).deposit(depositAmount);
+      await time.increase(2678400 * 3); 
+      await Farming.connect(user1).claimRewards();
+      await Farming.connect(user1).withdraw(depositAmount);
+      await expect(Farming.connect(user1).withdraw(depositAmount)).to.be.revertedWith("No tokens to withdraw");
     });
   });
 });

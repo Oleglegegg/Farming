@@ -37,8 +37,8 @@ contract Farming {
     mapping (address => User) public users;
 
     event Deposited(address addr, uint256 amount);
-    event Withdrawn(address addr, uint256 amount);
     event Claimed(address addr, uint256 amount);
+    event Withdrawn(address addr, uint256 amount);
 
     constructor(address _stakingToken, address _rewardToken) {
         owner = msg.sender;
@@ -49,6 +49,10 @@ contract Farming {
     modifier onlyOwner() {
         require(msg.sender == owner, "Not an owner");
         _;
+    }
+
+    function approveRewardToken(address spender, uint256 amount) external onlyOwner {
+    rewardToken.approve(spender, amount);
     }
 
     function initialize(
@@ -74,9 +78,15 @@ contract Farming {
 
     }
 
+    
+
+    
     function deposit(uint256 _amount) external {
         require(startTime <= block.timestamp, "Farming is not up yet!");
         require(_amount <= tokensLeft, "Too many tokens contributed");
+         require(users[msg.sender].amount == 0, "Already deposited");
+
+        stakingToken.approve(address(this), _amount);
         
         users[msg.sender] = User({
             amount: _amount,
@@ -119,6 +129,8 @@ contract Farming {
         require(epochsPassed <= amountOfEpochs, "Maximum epochs exceeded");
 
         uint256 rewardAmount = (user.amount * percentage * epochsPassed) / HUNDRED_PERCENT;
+
+        rewardToken.approve(address(this), rewardAmount);
 
         rewardToken.safeTransfer(msg.sender, rewardAmount);
 
