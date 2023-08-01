@@ -51,9 +51,6 @@ contract Farming {
         _;
     }
 
-    function approveRewardToken(address spender, uint256 amount) external onlyOwner {
-    rewardToken.approve(spender, amount);
-    }
 
     function initialize(
         uint256 _totalAmount,
@@ -86,7 +83,6 @@ contract Farming {
         require(_amount <= tokensLeft, "Too many tokens contributed");
          require(users[msg.sender].amount == 0, "Already deposited");
 
-        stakingToken.approve(address(this), _amount);
         
         users[msg.sender] = User({
             amount: _amount,
@@ -130,7 +126,6 @@ contract Farming {
 
         uint256 rewardAmount = (user.amount * percentage * epochsPassed) / HUNDRED_PERCENT;
 
-        rewardToken.approve(address(this), rewardAmount);
 
         rewardToken.safeTransfer(msg.sender, rewardAmount);
 
